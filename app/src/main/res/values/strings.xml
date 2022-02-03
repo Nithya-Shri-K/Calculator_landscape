@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Calculator_Fragments</string>
+    <string name="result_text">Your result is %1$s for inputs %2$s and %3$s with action %4$s</string>
+    <string name="toast_divide_error_message">A Number cannot be divided by 0</string>
+    <string name="add">Add</string>
+    <string name="subtract">Subtract</string>
+    <string name="multiply">Multiply</string>
+    <string name="divide">Divide</string>
+    <string name="valid_input_text">Please enter a valid input</string>
+</resources>
