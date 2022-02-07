@@ -23,6 +23,7 @@ class MainActivity : AppCompatActivity(),FragmentActionListener{
     private var input1 = ""
     private var input2 = ""
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -39,7 +40,7 @@ class MainActivity : AppCompatActivity(),FragmentActionListener{
             }
             else{
                 if(operation != Operation.DEFAULT ){
-                    addCalculateFragment(operation, R.id.fragment_container)
+                    addCalculateFragment(operation, R.id.fragment_container,0)
                 }else if(operation == Operation.DEFAULT){
                     supportFragmentManager.popBackStack()
                 }
@@ -48,16 +49,17 @@ class MainActivity : AppCompatActivity(),FragmentActionListener{
 
             if(savedInstanceState == null){
                 addMainScreenFragment()
-                addCalculateFragment(operation, R.id.fragment_container_calculate)
+                addCalculateFragment(operation, R.id.fragment_container_calculate,0)
             }
             else{
-                addCalculateFragment(operation, R.id.fragment_container_calculate)
+                addCalculateFragment(operation, R.id.fragment_container_calculate,0)
             }
         }
 
         supportFragmentManager.setFragmentResultListener(RESTORE_INPUTS_REQUEST_KEY,this) { requestKey, bundle ->
            input1 = bundle.getString(OPERAND1).toString()
             input2 = bundle.getString(OPERAND2).toString()
+
         }
     }
     override fun onSaveInstanceState(outState: Bundle) {
@@ -70,9 +72,9 @@ class MainActivity : AppCompatActivity(),FragmentActionListener{
     override fun selectedOperation(operationSelected: Operation) {
         operation = operationSelected
        if(resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT && operationSelected != Operation.DEFAULT)
-            addCalculateFragment(operation, R.id.fragment_container)
+            addCalculateFragment(operation, R.id.fragment_container,1)
         else if(resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE)
-                addCalculateFragment(operation,R.id.fragment_container_calculate)
+                addCalculateFragment(operation,R.id.fragment_container_calculate,1)
 
     }
     override fun onBackPressed() {
@@ -96,12 +98,16 @@ class MainActivity : AppCompatActivity(),FragmentActionListener{
         fragmentTransaction.add(R.id.fragment_container, mainScreenFragment)
         fragmentTransaction.commit()
     }
-    private fun addCalculateFragment(operation: Operation,container: Int){
+    private fun addCalculateFragment(operationToPerform: Operation,container: Int,flag : Int){
         if(supportFragmentManager.backStackEntryCount >= 1) {
             supportFragmentManager.popBackStack()
         }
+        if(flag==1){
+            input1 = ""
+            input2 = ""
+        }
         val bundle = Bundle()
-        bundle.putSerializable(OPERATION,operation)
+        bundle.putSerializable(OPERATION,operationToPerform)
         bundle.putString(OPERAND1,input1)
         bundle.putString(OPERAND2,input2)
         val calculateFragment = Calculate()
