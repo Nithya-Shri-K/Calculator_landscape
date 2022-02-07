@@ -22,10 +22,6 @@ class Calculate : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        if(savedInstanceState != null){
-            actionListener = activity as MainActivity
-        }
-
         binding = FragmentCalculateBinding.inflate(inflater,container,false)
         if(resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
             binding.backButton.visibility = View.VISIBLE
