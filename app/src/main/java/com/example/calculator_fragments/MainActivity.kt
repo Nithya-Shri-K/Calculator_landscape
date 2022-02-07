@@ -98,11 +98,11 @@ class MainActivity : AppCompatActivity(),FragmentActionListener{
         fragmentTransaction.add(R.id.fragment_container, mainScreenFragment)
         fragmentTransaction.commit()
     }
-    private fun addCalculateFragment(operationToPerform: Operation,container: Int,flag : Int){
+    private fun addCalculateFragment(operationToPerform: Operation,container: Int,isUserSelected : Int){
         if(supportFragmentManager.backStackEntryCount >= 1) {
             supportFragmentManager.popBackStack()
         }
-        if(flag==1){
+        if(isUserSelected == 1){
             input1 = ""
             input2 = ""
         }
