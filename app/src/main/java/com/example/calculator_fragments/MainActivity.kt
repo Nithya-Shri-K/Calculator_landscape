@@ -1,17 +1,12 @@
 package com.example.calculator_fragments
 
 import android.content.res.Configuration
-import android.graphics.Path
-import android.os.Binder
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
+import android.util.Log
 import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
-import androidx.fragment.app.setFragmentResultListener
-
-import kotlin.properties.Delegates
+import com.example.calculator_fragments.databinding.ActivityMainBinding
 
 const val IS_RESULT_PAGE = "Is_Result_Page"
 const val RESULT = "result"
@@ -19,127 +14,101 @@ const val REQUEST_KEY = "requestKey"
 const val OPERAND1 = "operand1"
 const val OPERAND2 = "operand2"
 const val OPERATION = "operation"
+const val RESTORE_INPUTS_REQUEST_KEY = "restore_input_request_key"
 
 
 class MainActivity : AppCompatActivity(),FragmentActionListener{
+    lateinit var binding : ActivityMainBinding
     private var operation = Operation.DEFAULT
-    var finalResult = ""
-    var state=1
-    var input1 = ""
-    var input2 = ""
+    private var input1 = ""
+    private var input2 = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         if(savedInstanceState != null ){
-            input1 = savedInstanceState.getString("operand1").toString()
-            input2 = savedInstanceState.getString("operand2").toString()
+            input1 = savedInstanceState.getString(OPERAND1).toString()
+            input2 = savedInstanceState.getString(OPERAND2).toString()
+            operation = savedInstanceState.getSerializable(OPERATION) as Operation
+
         }
-        if(findViewById<LinearLayout>(R.id.portrait_layout) != null) {
+        if(resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
             if (savedInstanceState == null) {
                 addMainScreenFragment()
             }
             else{
-                if(savedInstanceState.getSerializable("operation") as Operation != Operation.DEFAULT  ){
-                    addCalculateFragment(savedInstanceState.getSerializable("operation") as Operation)
+                if(operation != Operation.DEFAULT ){
+                    addCalculateFragment(operation, R.id.fragment_container)
+                }else if(operation == Operation.DEFAULT){
+                    supportFragmentManager.popBackStack()
                 }
-
             }
-        } else if(findViewById<LinearLayout>(R.id.landscape_layout) != null){
+        } else if(resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE){
 
             if(savedInstanceState == null){
                 addMainScreenFragment()
                 addCalculateFragment(operation, R.id.fragment_container_calculate)
             }
             else{
-//                if(savedInstanceState.getInt("state") !=2)
-                    //addMainScreenFragment()
-                addCalculateFragment(savedInstanceState.getSerializable("operation") as Operation, R.id.fragment_container_calculate)
+                addCalculateFragment(operation, R.id.fragment_container_calculate)
             }
-
-
         }
-        supportFragmentManager.setFragmentResultListener("CalculateScreenData",this) { requestKey, bundle ->
-           input1 = bundle.getString("operand1").toString()
-            input2 = bundle.getString("operand2").toString()
 
+        supportFragmentManager.setFragmentResultListener(RESTORE_INPUTS_REQUEST_KEY,this) { requestKey, bundle ->
+           input1 = bundle.getString(OPERAND1).toString()
+            input2 = bundle.getString(OPERAND2).toString()
         }
     }
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        operation = savedInstanceState.getSerializable("operation") as Operation
-        state = savedInstanceState.getInt("state")
-
-
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putSerializable("operation",operation)
-        outState.putInt("state",state)
-        outState.putString("operand1",input1)
-        outState.putString("operand2",input2)
-
+        outState.putSerializable(OPERATION,operation)
+        outState.putString(OPERAND1,input1)
+        outState.putString(OPERAND2,input2)
     }
 
     override fun selectedOperation(operationSelected: Operation) {
         operation = operationSelected
-       if(findViewById<LinearLayout>(R.id.landscape_layout)==null && operationSelected != Operation.DEFAULT)
-            addCalculateFragment(operation)
-        else if(findViewById<LinearLayout>(R.id.portrait_layout)==null)
+       if(resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT && operationSelected != Operation.DEFAULT)
+            addCalculateFragment(operation, R.id.fragment_container)
+        else if(resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE)
                 addCalculateFragment(operation,R.id.fragment_container_calculate)
 
     }
+    override fun onBackPressed() {
 
-    override fun isResultScreen(state: Int) {
-        this.state = state
-        if(state==1){
-            input1=""
-            input2=""
-        }
-    }
-
-    private fun addMainScreenFragment(){
-        Toast.makeText(this,"MainScreen calleddd",Toast.LENGTH_SHORT).show()
-//        val f = supportFragmentManager.findFragmentByTag("main_screen")
-        val fragmentTransaction = supportFragmentManager.beginTransaction()
-//        if(f !=null) {
-//            fragmentTransaction.remove(f)
-//            Toast.makeText(this,"removed f",Toast.LENGTH_SHORT).show()
-//        }
-        val mainScreenFragment = MainScreen()
-        mainScreenFragment.actionListener=this
-        fragmentTransaction.add(R.id.fragment_container, mainScreenFragment,"main_screen")
-        fragmentTransaction.commit()
-    }
-        private fun addCalculateFragment(operation: Operation, container: Int){
-            if(supportFragmentManager.backStackEntryCount >= 1) {
+        if(resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            if(supportFragmentManager.backStackEntryCount >=1){
                 supportFragmentManager.popBackStack()
             }
-        val bundle = Bundle()
-        bundle.putSerializable(OPERATION,operation)
-            bundle.putString("operand1",input1)
-            bundle.putString("operand2",input2)
-
-        val calculateFragment = Calculate()
-        calculateFragment.arguments=bundle
-            val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(container, calculateFragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
+            finish()
+        }
+        else{
+            super.onBackPressed()
+            input1 =""
+            input2 =""
+        }
     }
-    private fun addCalculateFragment(operation: Operation){
-        if(supportFragmentManager.backStackEntryCount>=1)
+    private fun addMainScreenFragment(){
+        val fragmentTransaction = supportFragmentManager.beginTransaction()
+        val mainScreenFragment = MainScreen()
+        mainScreenFragment.actionListener=this
+        fragmentTransaction.add(R.id.fragment_container, mainScreenFragment)
+        fragmentTransaction.commit()
+    }
+    private fun addCalculateFragment(operation: Operation,container: Int){
+        if(supportFragmentManager.backStackEntryCount >= 1) {
             supportFragmentManager.popBackStack()
+        }
         val bundle = Bundle()
         bundle.putSerializable(OPERATION,operation)
-        bundle.putString("operand1",input1)
-        bundle.putString("operand2",input2)
+        bundle.putString(OPERAND1,input1)
+        bundle.putString(OPERAND2,input2)
         val calculateFragment = Calculate()
         calculateFragment.arguments=bundle
         calculateFragment.actionListener = this
         val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.fragment_container, calculateFragment)
+        transaction.replace(container, calculateFragment)
         transaction.addToBackStack(null)
         transaction.commit()
     }
