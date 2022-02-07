@@ -22,18 +22,19 @@ class Calculate : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         binding = FragmentCalculateBinding.inflate(inflater,container,false)
+        val operation = arguments?.getSerializable(OPERATION) as Operation
+        val input1 = arguments?.getString(OPERAND1)
+        val input2 = arguments?.getString(OPERAND2)
+        binding.input1.setText(input1, TextView.BufferType.EDITABLE)
+        binding.input2.setText(input2, TextView.BufferType.EDITABLE)
         if(resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
             binding.backButton.visibility = View.VISIBLE
         }
         else{
             binding.backButton.visibility = View.GONE
         }
-        val operation = arguments?.getSerializable(OPERATION) as Operation
-        val input1 = arguments?.getString(OPERAND1)
-        val input2 = arguments?.getString(OPERAND2)
-        binding.input1.setText(input1, TextView.BufferType.EDITABLE)
-        binding.input2.setText(input2, TextView.BufferType.EDITABLE)
 
         if(operation == Operation.DEFAULT){
             disable()
